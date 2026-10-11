@@ -1,0 +1,67 @@
+uniform shader contentShader;
+uniform float2 uResolution;
+uniform float2 uLightDir;       // Driven by device accelerometer/gyroscope (-1.0 to 1.0)
+uniform float uGlassDensity;    // 0.0 (Pure Glass) to 1.0 (Opaque)
+uniform float uRefractionIndex; // Strength of edge bending
+uniform float uChromaticAberr;  // 1.0 enabled, 0.0 disabled
+uniform float uCornerRadius;
+
+float roundedBoxSDF(float2 p, float2 b, float r) {
+    float2 q = abs(p) - b + float2(r);
+    return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+}
+
+half4 main(float2 fragCoord) {
+    float2 halfRes = uResolution * 0.5;
+    float2 p = fragCoord - halfRes;
+    float2 boxSize = halfRes;
+    
+    // Signed Distance Field of the element
+    float d = roundedBoxSDF(p, boxSize, uCornerRadius);
+    if (d > 0.0) {
+        return half4(0.0); // Outside rounded bounds
+    }
+
+    // Normal approximation for the beveled glass edge
+    float eps = 2.0;
+    float dx = (roundedBoxSDF(p + float2(eps, 0.0), boxSize, uCornerRadius) - roundedBoxSDF(p - float2(eps, 0.0), boxSize, uCornerRadius)) / (2.0 * eps);
+    float dy = (roundedBoxSDF(p + float2(0.0, eps), boxSize, uCornerRadius) - roundedBoxSDF(p - float2(0.0, eps), boxSize, uCornerRadius)) / (2.0 * eps);
+    float2 normal = normalize(float2(dx, dy));
+
+    // Refraction falloff: strongest along the curved rim
+    float rimFactor = smoothstep(-18.0, 0.0, d);
+    float2 distortion = -normal * rimFactor * uRefractionIndex * 15.0;
+
+    // Sample content with chromatic dispersion
+    half4 color;
+    if (uChromaticAberr > 0.5 && rimFactor > 0.1) {
+        float r = contentShader.eval(fragCoord + distortion * 1.08).r;
+        float g = contentShader.eval(fragCoord + distortion * 1.00).g;
+        float b = contentShader.eval(fragCoord + distortion * 0.92).b;
+        float a = contentShader.eval(fragCoord + distortion).a;
+        color = half4(r, g, b, a);
+    } else {
+        color = contentShader.eval(fragCoord + distortion);
+    }
+
+    // Dynamic specular glare from motion vectors
+    float3 N = normalize(float3(normal * rimFactor, 0.6));
+    float3 L = normalize(float3(uLightDir.x, -uLightDir.y, 0.8));
+    float3 V = float3(0.0, 0.0, 1.0);
+    float3 H = normalize(L + V);
+    float spec = pow(max(dot(N, H), 0.0), 32.0);
+
+    // Fresnel edge glow
+    float fresnel = pow(1.0 + d / 18.0, 2.5) * rimFactor;
+
+    // Material density composition
+    half4 glassColor = half4(1.0, 1.0, 1.0, 0.12 * (1.0 - uGlassDensity));
+    half4 specularColor = half4(1.0, 1.0, 1.0, spec * 0.85 + fresnel * 0.45);
+
+    // Blend: base distorted content + glass volume + specular sheen
+    half4 result = mix(color, glassColor, 0.25 * (1.0 - uGlassDensity));
+    result += specularColor;
+    result.a = 1.0;
+
+    return result;
+}
