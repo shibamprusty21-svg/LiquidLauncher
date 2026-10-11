@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+    android:background="#1C1C1E">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Liquid Glass Material"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/img_preview"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Material Density &amp; Refraction"
+            android:textColor="#EBEBF5"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/txt_density_val"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#8E8E93"
+            android:textSize="14sp" />
+
+        <SeekBar
+            android:id="@+id/seek_density"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="20dp" />
+
+        <Switch
+            android:id="@+id/switch_chromatic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Chromatic Edge Dispersion"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+        <Switch
+            android:id="@+id/switch_gyro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gyroscope Surface Glare"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+
+        <Switch
+            android:id="@+id/switch_convert_all"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Convert All App Logos to Liquid Glass"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="16dp" />
+    </LinearLayout>
+</ScrollView>
